@@ -5,10 +5,11 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { extractProductsFromPDF } from './pdfParser.js';
-import sqlite3 from 'sqlite3';
-import { open } from 'sqlite';
+import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import dotenv from 'dotenv';
+dotenv.config();
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -40,23 +41,32 @@ const upload = multer({ storage: storage });
 // Database Setup
 let db;
 async function setupDatabase() {
-  db = await open({
-    filename: path.join(DATA_DIR, 'catalog.db'),
-    driver: sqlite3.Database
+  db = mysql.createPool({
+    host: process.env.MYSQL_HOST,
+    user: process.env.MYSQL_USER,
+    password: process.env.MYSQL_PASSWORD,
+    database: process.env.MYSQL_DATABASE,
+    port: process.env.MYSQL_PORT || 3306,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit: 0
   });
 
-  await db.exec(`
+  await db.query(`
     CREATE TABLE IF NOT EXISTS products (
-      id TEXT PRIMARY KEY,
-      title TEXT NOT NULL,
+      id VARCHAR(255) PRIMARY KEY,
+      title VARCHAR(255) NOT NULL,
       description TEXT,
-      price REAL,
-      imageUrl TEXT
+      price DECIMAL(10,2),
+      imageUrl VARCHAR(255)
     );
+  `);
+  
+  await db.query(`
     CREATE TABLE IF NOT EXISTS users (
-      id INTEGER PRIMARY KEY AUTOINCREMENT,
-      username TEXT UNIQUE NOT NULL,
-      password TEXT NOT NULL
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      username VARCHAR(255) UNIQUE NOT NULL,
+      password VARCHAR(255) NOT NULL
     );
   `);
 }
@@ -88,10 +98,10 @@ app.post('/register', async (req, res) => {
 
   try {
     const hashedPassword = await bcrypt.hash(password, 10);
-    await db.run('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
+    await db.execute('INSERT INTO users (username, password) VALUES (?, ?)', [username, hashedPassword]);
     res.status(201).json({ message: "Usuario registrado exitosamente" });
   } catch (err) {
-    if (err.message.includes('UNIQUE constraint failed')) {
+    if (err.code === 'ER_DUP_ENTRY') {
       return res.status(400).json({ detail: "El nombre de usuario ya existe" });
     }
     res.status(500).json({ detail: "Error registrando usuario" });
@@ -103,7 +113,8 @@ app.post('/login', async (req, res) => {
   if (!username || !password) return res.status(400).json({ detail: "Usuario y contraseña requeridos" });
 
   try {
-    const user = await db.get('SELECT * FROM users WHERE username = ?', [username]);
+    const [rows] = await db.execute('SELECT * FROM users WHERE username = ?', [username]);
+    const user = rows[0];
     if (!user) return res.status(400).json({ detail: "Usuario o contraseña incorrectos" });
 
     const validPassword = await bcrypt.compare(password, user.password);
@@ -119,12 +130,12 @@ app.post('/login', async (req, res) => {
 
 // --- CATALOG ROUTES ---
 app.get('/', (req, res) => {
-  res.send('API de Catálogo E-commerce (Express ESM + SQLite) con Auth funcionando.');
+  res.send('API de Catálogo E-commerce (Express ESM + MySQL) con Auth funcionando.');
 });
 
 app.get('/products', async (req, res) => {
   try {
-    const products = await db.all('SELECT * FROM products');
+    const [products] = await db.execute('SELECT * FROM products');
     res.json(products);
   } catch (err) {
     res.status(500).json({ detail: "Error obteniendo productos de la base de datos" });
@@ -146,18 +157,16 @@ app.post('/upload-pdf', authenticateToken, upload.single('file'), async (req, re
   // Procesar asíncronamente (no bloquea la respuesta http)
   try {
     const buffer = req.file.buffer;
-    const insertStmt = await db.prepare('INSERT INTO products (id, title, description, price, imageUrl) VALUES (?, ?, ?, ?, ?)');
     
     await extractProductsFromPDF(buffer, IMAGES_DIR, async (product) => {
       try {
-        await insertStmt.run(product.id, product.title, product.description, product.price, product.imageUrl);
+        await db.execute('INSERT INTO products (id, title, description, price, imageUrl) VALUES (?, ?, ?, ?, ?)', [product.id, product.title, product.description, product.price, product.imageUrl]);
         console.log(`Producto guardado: ${product.title}`);
       } catch (err) {
         console.error('Error insertando producto en DB:', err);
       }
     });
     
-    await insertStmt.finalize();
     console.log('Procesamiento de PDF completado.');
   } catch (error) {
     console.error('Error procesando PDF en background:', error);
@@ -166,7 +175,7 @@ app.post('/upload-pdf', authenticateToken, upload.single('file'), async (req, re
 
 app.delete('/products', authenticateToken, async (req, res) => {
   try {
-    await db.run('DELETE FROM products');
+    await db.execute('DELETE FROM products');
     fs.readdir(IMAGES_DIR, (err, files) => {
       if (err) throw err;
       for (const file of files) {
