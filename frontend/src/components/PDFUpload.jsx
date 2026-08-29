@@ -33,7 +33,7 @@ const PDFUpload = ({ onProductsExtracted }) => {
     formData.append('file', file);
 
     try {
-      const response = await axios.post(`\${import.meta.env.VITE_API_URL || '\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}'}/upload-pdf`, formData, {
+      const response = await axios.post(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/upload-pdf`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
           'Authorization': `Bearer ${token}`

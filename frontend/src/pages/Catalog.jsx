@@ -29,7 +29,7 @@ const Catalog = () => {
   const fetchProducts = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/products`);
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/products`);
       if (Array.isArray(response.data)) {
         setProducts(response.data);
         setFilteredProducts(response.data);
@@ -51,7 +51,7 @@ const Catalog = () => {
     // Auto-refresh en segundo plano cada 3 segundos
     const interval = setInterval(() => {
       // Usamos una versión silenciada para no mostrar el spinner cada vez
-      axios.get(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/products`)
+      axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/products`)
         .then(res => {
           if (Array.isArray(res.data)) {
             setProducts(res.data);
@@ -96,7 +96,7 @@ const Catalog = () => {
   const handleClearCatalog = async () => {
     if(window.confirm('¿Estás seguro de que quieres limpiar todo el catálogo?')) {
       try {
-        await axios.delete(`\${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/products`, {
+        await axios.delete(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/products`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         fetchProducts();
