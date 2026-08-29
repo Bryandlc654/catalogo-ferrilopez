@@ -1,0 +1,8 @@
+node_modules/
+.env
+catalog.db
+database.sqlite
+static/images/
+dist/
+test_images/
+Catálogo mayorista 2026-2027.pdf
