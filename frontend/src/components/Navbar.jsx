@@ -13,7 +13,7 @@ const Navbar = () => {
   };
 
   return (
-    <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50">
+    <header className="bg-white shadow-sm border-b border-gray-100 sticky top-0 z-50 print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
         
         <Link to="/" className="flex items-center group">
@@ -25,6 +25,10 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center space-x-6">
+          <Link to="/ticket" className="text-gray-600 hover:text-brand-red font-bold text-sm transition-colors flex items-center print:hidden">
+            <FiBookOpen className="mr-1.5 text-lg"/> Generar Ticket
+          </Link>
+          
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
               <span className="text-gray-600 font-medium flex items-center hidden sm:flex text-sm">

@@ -5,6 +5,7 @@ import Navbar from './components/Navbar';
 import Catalog from './pages/Catalog';
 import Login from './pages/Login';
 import Register from './pages/Register';
+import DispatchTicket from './pages/DispatchTicket';
 
 // Componente para proteger rutas si se necesita más adelante
 const ProtectedRoute = ({ children }) => {
@@ -21,6 +22,7 @@ function App() {
           
           <Routes>
             <Route path="/" element={<Catalog />} />
+            <Route path="/ticket" element={<DispatchTicket />} />
             <Route path="/login" element={<Login />} />
             <Route path="/register" element={<Register />} />
           </Routes>
