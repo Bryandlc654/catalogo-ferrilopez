@@ -131,18 +131,6 @@ const DispatchTicket = ({ products = [] }) => {
           >
             <FiSave /> {isSaving ? 'Guardando...' : 'Guardar Ticket'}
           </button>
-          <button 
-            onClick={handleDownloadPDF}
-            className="bg-blue-600 text-white px-4 py-2 rounded font-semibold flex items-center gap-2 hover:bg-blue-800 transition"
-          >
-            <FiDownload /> Descargar PDF
-          </button>
-          <button 
-            onClick={handlePrint}
-            className="bg-gray-800 text-white px-4 py-2 rounded font-semibold flex items-center gap-2 hover:bg-black transition"
-          >
-            <FiPrinter /> Imprimir
-          </button>
         </div>
       </div>
 

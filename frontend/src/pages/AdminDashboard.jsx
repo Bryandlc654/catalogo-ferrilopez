@@ -1,9 +1,11 @@
 import React, { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { FiEdit2, FiTrash2, FiFileText, FiUploadCloud, FiPackage, FiPlus } from 'react-icons/fi';
+import { FiPackage, FiUploadCloud, FiTrash2, FiEdit2, FiPlus, FiImage, FiFileText, FiDownload, FiPrinter } from 'react-icons/fi';
 import PDFUpload from '../components/PDFUpload';
 import DispatchTicket from './DispatchTicket';
+import PrintableTicket from '../components/PrintableTicket';
+import html2pdf from 'html2pdf.js';
 
 const AdminDashboard = () => {
   const [activeTab, setActiveTab] = useState('products');
@@ -39,6 +41,8 @@ const AdminDashboard = () => {
     }
   };
 
+  const [ticketToPrint, setTicketToPrint] = useState(null);
+
   const fetchTickets = async () => {
     try {
       const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/tickets`, {
@@ -50,6 +54,34 @@ const AdminDashboard = () => {
     } catch (err) {
       console.error('Error fetching tickets:', err);
     }
+  };
+
+  const handlePrintHistoryTicket = (ticket) => {
+    setTicketToPrint(ticket);
+    setTimeout(() => {
+      window.print();
+    }, 100);
+  };
+
+  const handleDownloadHistoryTicket = (ticket) => {
+    setTicketToPrint(ticket);
+    setTimeout(() => {
+      const element = document.getElementById('hidden-ticket-template');
+      const opt = {
+        margin: 10,
+        filename: `Ticket_${ticket.ticket_code}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      const oldStyles = element.style.cssText;
+      element.style.display = 'block'; // force display temporarily
+      
+      html2pdf().set(opt).from(element).save().then(() => {
+        element.style.cssText = oldStyles;
+      });
+    }, 100);
   };
 
   useEffect(() => {
@@ -177,10 +209,14 @@ const AdminDashboard = () => {
   };
 
   return (
-    <div className="flex h-[calc(100vh-5rem)] bg-gray-50">
-      
-      {/* SIDEBAR */}
-      <div className="w-64 bg-white border-r border-gray-200 flex flex-col print:hidden shadow-sm">
+    <>
+      <div className="hidden print:block">
+        <PrintableTicket ticket={ticketToPrint} />
+      </div>
+      <div className="flex h-[calc(100vh-5rem)] bg-gray-50 print:hidden">
+        
+        {/* SIDEBAR */}
+        <div className="w-64 bg-white border-r border-gray-200 flex flex-col shadow-sm">
         <div className="p-6">
           <h2 className="text-xl font-bold text-gray-800">Panel de Control</h2>
         </div>
@@ -303,11 +339,12 @@ const AdminDashboard = () => {
                     <th className="px-6 py-4 font-semibold">Ciudad</th>
                     <th className="px-6 py-4 font-semibold">Fecha</th>
                     <th className="px-6 py-4 font-semibold">Productos</th>
+                    <th className="px-6 py-4 font-semibold text-right">Acciones</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
                   {tickets.length === 0 ? (
-                    <tr><td colSpan="5" className="text-center py-8 text-gray-500">No hay tickets generados todavía.</td></tr>
+                    <tr><td colSpan="6" className="text-center py-8 text-gray-500">No hay tickets generados todavía.</td></tr>
                   ) : (
                     tickets.map(t => {
                       let prods = [];
@@ -322,6 +359,16 @@ const AdminDashboard = () => {
                             {prods.map((p, i) => (
                               <div key={i}>{p.cantidad}x {p.nombre}</div>
                             ))}
+                          </td>
+                          <td className="px-6 py-3 text-right">
+                            <div className="flex justify-end gap-2">
+                              <button onClick={() => handleDownloadHistoryTicket(t)} className="p-2 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition" title="Descargar PDF">
+                                <FiDownload />
+                              </button>
+                              <button onClick={() => handlePrintHistoryTicket(t)} className="p-2 bg-gray-100 text-gray-700 rounded hover:bg-gray-200 transition" title="Imprimir">
+                                <FiPrinter />
+                              </button>
+                            </div>
                           </td>
                         </tr>
                       )
@@ -424,6 +471,7 @@ const AdminDashboard = () => {
       )}
 
     </div>
+    </>
   );
 };
 
