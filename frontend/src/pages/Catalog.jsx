@@ -180,8 +180,8 @@ const Catalog = () => {
         <div className="flex flex-col lg:flex-row gap-8">
           
           {/* FILTROS LATERALES */}
-          <div className="w-full lg:w-64 flex-shrink-0">
-            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100 sticky top-28">
+          <div className="w-full lg:w-64 flex-shrink-0 lg:sticky lg:top-24 lg:self-start lg:max-h-[calc(100vh-8rem)] lg:overflow-y-auto custom-scrollbar">
+            <div className="bg-white p-5 rounded-2xl shadow-sm border border-gray-100">
               <div className="flex items-center gap-2 font-bold text-gray-900 mb-4 pb-2 border-b border-gray-100 text-lg">
                 <FiFilter className="text-brand-blue" />
                 Categorías
