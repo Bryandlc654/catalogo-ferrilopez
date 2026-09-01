@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FiPrinter, FiPlus, FiTrash2, FiFileText } from 'react-icons/fi';
 
-const DispatchTicket = () => {
+const DispatchTicket = ({ products = [] }) => {
   const [formData, setFormData] = useState({
     nombres: '',
     cedula: '',
@@ -14,7 +14,7 @@ const DispatchTicket = () => {
   });
 
   const [productos, setProductos] = useState([
-    { codigo: '', nombre: '', cantidad: 1 }
+    { codigo: '', nombre: '', cantidad: 1, showSearch: false }
   ]);
 
   const handleInputChange = (e) => {
@@ -25,11 +25,29 @@ const DispatchTicket = () => {
   const handleProductChange = (index, field, value) => {
     const newProductos = [...productos];
     newProductos[index][field] = value;
+    if (field === 'nombre') {
+      newProductos[index].showSearch = true;
+    }
+    setProductos(newProductos);
+  };
+
+  const handleSelectProduct = (index, product) => {
+    const newProductos = [...productos];
+    // Attempt to extract real code from JSON description
+    let code = product.id;
+    try {
+      const data = JSON.parse(product.description);
+      if (data.codigo) code = data.codigo;
+    } catch(e) {}
+    
+    newProductos[index].nombre = product.title;
+    newProductos[index].codigo = code;
+    newProductos[index].showSearch = false;
     setProductos(newProductos);
   };
 
   const addProductRow = () => {
-    setProductos([...productos, { codigo: '', nombre: '', cantidad: 1 }]);
+    setProductos([...productos, { codigo: '', nombre: '', cantidad: 1, showSearch: false }]);
   };
 
   const removeProductRow = (index) => {
@@ -181,14 +199,32 @@ const DispatchTicket = () => {
                         className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
                       />
                     </td>
-                    <td className="px-2 py-2">
+                    <td className="px-2 py-2 relative">
                       <input 
                         type="text" 
                         value={prod.nombre} 
                         onChange={(e) => handleProductChange(index, 'nombre', e.target.value)}
-                        placeholder="Nombre completo"
+                        onFocus={() => handleProductChange(index, 'showSearch', true)}
+                        onBlur={() => setTimeout(() => handleProductChange(index, 'showSearch', false), 200)}
+                        placeholder="Buscar producto..."
                         className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
                       />
+                      {prod.showSearch && prod.nombre.length > 1 && (
+                        <div className="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 shadow-xl rounded-lg print:hidden">
+                          {products
+                            .filter(p => p.title.toLowerCase().includes(prod.nombre.toLowerCase()))
+                            .slice(0, 10)
+                            .map(p => (
+                              <div 
+                                key={p.id}
+                                onMouseDown={() => handleSelectProduct(index, p)}
+                                className="p-2 hover:bg-brand-red hover:text-white cursor-pointer border-b border-gray-100 last:border-0 text-xs"
+                              >
+                                {p.title} <span className="opacity-75 float-right">${p.price}</span>
+                              </div>
+                            ))}
+                        </div>
+                      )}
                     </td>
                     <td className="px-2 py-2">
                       <input 

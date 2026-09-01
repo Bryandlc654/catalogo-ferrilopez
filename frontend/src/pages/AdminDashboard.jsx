@@ -266,7 +266,7 @@ const AdminDashboard = () => {
         {/* TAB 3: TICKETS */}
         {activeTab === 'ticket' && (
           <div className="w-full h-full">
-            <DispatchTicket />
+            <DispatchTicket products={products} />
           </div>
         )}
 
