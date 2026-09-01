@@ -3,7 +3,21 @@ import fs from 'fs';
 import path from 'path';
 import { createCanvas } from 'canvas';
 import dotenv from 'dotenv';
+import { S3Client, PutObjectCommand } from "@aws-sdk/client-s3";
+
 dotenv.config();
+
+let s3Client = null;
+if (process.env.R2_ACCOUNT_ID) {
+  s3Client = new S3Client({
+    region: "auto",
+    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    },
+  });
+}
 
 const generateId = () => Math.random().toString(36).substring(2, 10);
 
@@ -234,10 +248,28 @@ export async function extractProductsFromPDF(buffer, imagesDir, onProductParsed)
          
          if (i < finalImages.length && finalImages[i]) {
              const imageFilename = `product_${generateId()}.png`;
-             const imagePath = path.join(imagesDir, imageFilename);
-             fs.writeFileSync(imagePath, finalImages[i].buffer);
-             imageUrl = `/static/images/${imageFilename}`;
+             
+             if (s3Client && process.env.R2_BUCKET_NAME) {
+                 try {
+                     const uploadParams = {
+                         Bucket: process.env.R2_BUCKET_NAME,
+                         Key: imageFilename,
+                         Body: finalImages[i].buffer,
+                         ContentType: 'image/png'
+                     };
+                     await s3Client.send(new PutObjectCommand(uploadParams));
+                     imageUrl = `${process.env.R2_PUBLIC_URL}/${imageFilename}`;
+                 } catch (r2Err) {
+                     console.error("Error subiendo a R2:", r2Err);
+                 }
+             } else {
+                 // Fallback a almacenamiento local si R2 no est configurado
+                 const imagePath = path.join(imagesDir, imageFilename);
+                 fs.writeFileSync(imagePath, finalImages[i].buffer);
+                 imageUrl = `/static/images/${imageFilename}`;
+             }
          }
+         
          const newProduct = {
            id: generateId(),
            title: prodData.nombre ? prodData.nombre.substring(0, 150) : 'Producto sin título',

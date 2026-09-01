@@ -9,7 +9,21 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
+import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+
 dotenv.config();
+
+let s3Client = null;
+if (process.env.R2_ACCOUNT_ID) {
+  s3Client = new S3Client({
+    region: "auto",
+    endpoint: `https://${process.env.R2_ACCOUNT_ID}.r2.cloudflarestorage.com`,
+    credentials: {
+      accessKeyId: process.env.R2_ACCESS_KEY_ID,
+      secretAccessKey: process.env.R2_SECRET_ACCESS_KEY,
+    },
+  });
+}
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -202,19 +216,40 @@ app.delete('/products', authenticateToken, async (req, res) => {
     await db.execute('DELETE FROM products');
     
     // Safely delete images
-    try {
-      if (fs.existsSync(IMAGES_DIR)) {
-        const files = fs.readdirSync(IMAGES_DIR);
-        for (const file of files) {
-          try {
-            fs.unlinkSync(path.join(IMAGES_DIR, file));
-          } catch (e) {
-            console.error('No se pudo borrar imagen:', file);
+    if (s3Client && process.env.R2_BUCKET_NAME) {
+      try {
+        let isTruncated = true;
+        let continuationToken;
+        while (isTruncated) {
+          const listParams = { Bucket: process.env.R2_BUCKET_NAME, ContinuationToken: continuationToken };
+          const listedObjects = await s3Client.send(new ListObjectsV2Command(listParams));
+          if (!listedObjects.Contents || listedObjects.Contents.length === 0) break;
+          const deleteParams = {
+            Bucket: process.env.R2_BUCKET_NAME,
+            Delete: { Objects: listedObjects.Contents.map(c => ({ Key: c.Key })) }
+          };
+          await s3Client.send(new DeleteObjectsCommand(deleteParams));
+          isTruncated = listedObjects.IsTruncated;
+          continuationToken = listedObjects.NextContinuationToken;
+        }
+      } catch (r2Err) {
+        console.error('Error limpiando bucket de R2:', r2Err);
+      }
+    } else {
+      try {
+        if (fs.existsSync(IMAGES_DIR)) {
+          const files = fs.readdirSync(IMAGES_DIR);
+          for (const file of files) {
+            try {
+              fs.unlinkSync(path.join(IMAGES_DIR, file));
+            } catch (e) {
+              console.error('No se pudo borrar imagen local:', file);
+            }
           }
         }
+      } catch (fsErr) {
+        console.error('Error al leer el directorio de imagenes:', fsErr);
       }
-    } catch (fsErr) {
-      console.error('Error al leer el directorio de imagenes:', fsErr);
     }
     
     res.json({ message: "Catálogo limpiado correctamente" });

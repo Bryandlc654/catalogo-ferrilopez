@@ -119,7 +119,7 @@ const ProductList = ({ products }) => {
                 
                 {product.imageUrl ? (
                   <img
-                    src={`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${product.imageUrl}`}
+                    src={product.imageUrl.startsWith('http') ? product.imageUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${product.imageUrl}`}
                     alt={product.title}
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] mix-blend-multiply"
                     onError={(e) => {
