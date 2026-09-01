@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { FiPrinter, FiPlus, FiTrash2, FiFileText } from 'react-icons/fi';
+import { FiPrinter, FiPlus, FiTrash2, FiFileText, FiDownload, FiSave } from 'react-icons/fi';
+import html2pdf from 'html2pdf.js';
 
 const DispatchTicket = ({ products = [] }) => {
   const [formData, setFormData] = useState({
@@ -16,6 +17,9 @@ const DispatchTicket = ({ products = [] }) => {
   const [productos, setProductos] = useState([
     { codigo: '', nombre: '', cantidad: 1, showSearch: false }
   ]);
+
+  const [ticketCode, setTicketCode] = useState(null);
+  const [isSaving, setIsSaving] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -56,9 +60,8 @@ const DispatchTicket = ({ products = [] }) => {
     }
   };
 
-  const [ticketCode, setTicketCode] = useState(null);
-
-  const handlePrint = async () => {
+  const handleSave = async () => {
+    setIsSaving(true);
     try {
       const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/tickets`, {
         method: 'POST',
@@ -71,37 +74,72 @@ const DispatchTicket = ({ products = [] }) => {
       const data = await response.json();
       if (response.ok) {
         setTicketCode(data.ticket_code);
-        // Esperar un momento a que react renderice el código
-        setTimeout(() => {
-          window.print();
-        }, 300);
+        alert(`Ticket guardado exitosamente: ${data.ticket_code}`);
       } else {
         alert('Error guardando el ticket: ' + (data.detail || ''));
       }
     } catch(err) {
       alert('Error de conexión al guardar el ticket');
       console.error(err);
+    } finally {
+      setIsSaving(false);
     }
+  };
+
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('ticket-content');
+    const opt = {
+      margin: 10,
+      filename: `Ticket_${ticketCode || 'Nuevo'}.pdf`,
+      image: { type: 'jpeg', quality: 0.98 },
+      html2canvas: { scale: 2 },
+      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+    };
+    
+    const oldStyles = element.style.cssText;
+    
+    html2pdf().set(opt).from(element).save().then(() => {
+        element.style.cssText = oldStyles;
+    });
+  };
+
+  const handlePrint = () => {
+    window.print();
   };
 
   return (
     <div className="container mx-auto px-4 py-8 max-w-4xl">
       {/* HEADER (Oculto al imprimir) */}
-      <div className="flex justify-between items-center mb-6 print:hidden">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 print:hidden">
         <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-2">
           <FiFileText className="text-brand-red" />
           Generar Ticket de Despacho
         </h1>
-        <button 
-          onClick={handlePrint}
-          className="bg-brand-red text-white px-4 py-2 rounded font-semibold flex items-center gap-2 hover:bg-red-700 transition"
-        >
-          <FiPrinter /> Imprimir PDF
-        </button>
+        <div className="flex gap-2 flex-wrap">
+          <button 
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-green-600 text-white px-4 py-2 rounded font-semibold flex items-center gap-2 hover:bg-green-700 transition disabled:opacity-50"
+          >
+            <FiSave /> {isSaving ? 'Guardando...' : 'Guardar Ticket'}
+          </button>
+          <button 
+            onClick={handleDownloadPDF}
+            className="bg-blue-600 text-white px-4 py-2 rounded font-semibold flex items-center gap-2 hover:bg-blue-800 transition"
+          >
+            <FiDownload /> Descargar PDF
+          </button>
+          <button 
+            onClick={handlePrint}
+            className="bg-gray-800 text-white px-4 py-2 rounded font-semibold flex items-center gap-2 hover:bg-black transition"
+          >
+            <FiPrinter /> Imprimir
+          </button>
+        </div>
       </div>
 
       {/* CONTENEDOR PRINCIPAL DEL TICKET */}
-      <div className="bg-white p-8 rounded-lg shadow-md border border-gray-200 print:shadow-none print:border-none print:p-0">
+      <div id="ticket-content" className="bg-white p-8 rounded-lg shadow-md border border-gray-200 print:shadow-none print:border-none print:p-0">
         
         {/* ENCABEZADO TICKET (Visible al imprimir) */}
         <div className="text-center mb-8 border-b-2 border-gray-800 pb-4">
