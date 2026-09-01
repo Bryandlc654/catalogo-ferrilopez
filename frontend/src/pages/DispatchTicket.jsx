@@ -56,8 +56,32 @@ const DispatchTicket = ({ products = [] }) => {
     }
   };
 
-  const handlePrint = () => {
-    window.print();
+  const [ticketCode, setTicketCode] = useState(null);
+
+  const handlePrint = async () => {
+    try {
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/tickets`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('token') || ''}`
+        },
+        body: JSON.stringify({ formData, productos })
+      });
+      const data = await response.json();
+      if (response.ok) {
+        setTicketCode(data.ticket_code);
+        // Esperar un momento a que react renderice el código
+        setTimeout(() => {
+          window.print();
+        }, 300);
+      } else {
+        alert('Error guardando el ticket: ' + (data.detail || ''));
+      }
+    } catch(err) {
+      alert('Error de conexión al guardar el ticket');
+      console.error(err);
+    }
   };
 
   return (
@@ -83,7 +107,14 @@ const DispatchTicket = ({ products = [] }) => {
         <div className="text-center mb-8 border-b-2 border-gray-800 pb-4">
           <h2 className="text-3xl font-black text-gray-900 tracking-wider">FERRILOPEZ</h2>
           <p className="text-gray-600 font-medium">ORDEN DE DESPACHO Y ENTREGA</p>
-          <p className="text-sm text-gray-500 mt-1">Fecha: {new Date().toLocaleDateString()}</p>
+          <div className="flex justify-center items-center gap-4 mt-2">
+            <p className="text-sm text-gray-500 font-medium">Fecha: {new Date().toLocaleDateString()}</p>
+            {ticketCode && (
+              <span className="bg-gray-100 text-gray-800 px-3 py-1 rounded font-bold border border-gray-300">
+                {ticketCode}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* SECCIÓN: DATOS DEL CLIENTE */}

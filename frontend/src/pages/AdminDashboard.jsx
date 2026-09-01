@@ -23,6 +23,8 @@ const AdminDashboard = () => {
 
   const { token } = useContext(AuthContext);
 
+  const [tickets, setTickets] = useState([]);
+
   const fetchProducts = async () => {
     try {
       setLoading(true);
@@ -37,9 +39,24 @@ const AdminDashboard = () => {
     }
   };
 
+  const fetchTickets = async () => {
+    try {
+      const response = await axios.get(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/tickets`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (Array.isArray(response.data)) {
+        setTickets(response.data);
+      }
+    } catch (err) {
+      console.error('Error fetching tickets:', err);
+    }
+  };
+
   useEffect(() => {
     if (activeTab === 'products') {
       fetchProducts();
+    } else if (activeTab === 'ticket-history') {
+      fetchTickets();
     }
   }, [activeTab]);
 
@@ -175,7 +192,10 @@ const AdminDashboard = () => {
             <FiUploadCloud /> Subir Catálogo (PDF)
           </button>
           <button onClick={() => setActiveTab('ticket')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${activeTab === 'ticket' ? 'bg-brand-red text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
-            <FiFileText /> Ticket de Despacho
+            <FiFileText /> Crear Ticket
+          </button>
+          <button onClick={() => setActiveTab('ticket-history')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${activeTab === 'ticket-history' ? 'bg-brand-red text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
+            <FiFileText /> Historial de Tickets
           </button>
         </nav>
       </div>
@@ -267,6 +287,49 @@ const AdminDashboard = () => {
         {activeTab === 'ticket' && (
           <div className="w-full h-full">
             <DispatchTicket products={products} />
+          </div>
+        )}
+
+        {/* TAB 4: HISTORIAL DE TICKETS */}
+        {activeTab === 'ticket-history' && (
+          <div className="p-8">
+            <h1 className="text-2xl font-bold text-gray-800 mb-6">Historial de Tickets Generados</h1>
+            <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
+              <table className="w-full text-left text-sm">
+                <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
+                  <tr>
+                    <th className="px-6 py-4 font-semibold">Código</th>
+                    <th className="px-6 py-4 font-semibold">Cliente</th>
+                    <th className="px-6 py-4 font-semibold">Ciudad</th>
+                    <th className="px-6 py-4 font-semibold">Fecha</th>
+                    <th className="px-6 py-4 font-semibold">Productos</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-100">
+                  {tickets.length === 0 ? (
+                    <tr><td colSpan="5" className="text-center py-8 text-gray-500">No hay tickets generados todavía.</td></tr>
+                  ) : (
+                    tickets.map(t => {
+                      let prods = [];
+                      try { prods = JSON.parse(t.products || '[]'); } catch(e) {}
+                      return (
+                        <tr key={t.id} className="hover:bg-gray-50">
+                          <td className="px-6 py-3 font-medium text-brand-blue">{t.ticket_code}</td>
+                          <td className="px-6 py-3 font-bold">{t.client_name || '-'}</td>
+                          <td className="px-6 py-3">{t.city || '-'}</td>
+                          <td className="px-6 py-3 text-gray-500">{new Date(t.created_at).toLocaleString()}</td>
+                          <td className="px-6 py-3 text-xs text-gray-600">
+                            {prods.map((p, i) => (
+                              <div key={i}>{p.cantidad}x {p.nombre}</div>
+                            ))}
+                          </td>
+                        </tr>
+                      )
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         )}
 

@@ -84,11 +84,28 @@ async function setupDatabase() {
     // Ignore if column already exists
   }
   
-  await db.query(`
+  await db.execute(`
     CREATE TABLE IF NOT EXISTS users (
       id INT AUTO_INCREMENT PRIMARY KEY,
       username VARCHAR(255) UNIQUE NOT NULL,
       password VARCHAR(255) NOT NULL
+    );
+  `);
+
+  await db.execute(`
+    CREATE TABLE IF NOT EXISTS dispatch_tickets (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      ticket_code VARCHAR(50) UNIQUE NOT NULL,
+      client_name VARCHAR(255),
+      client_id VARCHAR(50),
+      phone VARCHAR(50),
+      city VARCHAR(100),
+      address TEXT,
+      delivery_reference TEXT,
+      reference_phone VARCHAR(50),
+      payment_method VARCHAR(50),
+      products JSON,
+      created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
     );
   `);
 }
@@ -276,6 +293,47 @@ app.delete('/products/:id', authenticateToken, async (req, res) => {
     res.status(500).json({ detail: "Error eliminando producto" });
   }
 });
+
+  // TICKET ROUTES
+  app.post('/tickets', authenticateToken, async (req, res) => {
+    const { formData, productos } = req.body;
+    try {
+      // Generate unique ticket code (e.g. TK-0001 based on auto increment id or random)
+      const code = `TK-${Math.floor(1000 + Math.random() * 9000)}-${Date.now().toString().slice(-4)}`;
+      
+      await db.execute(
+        `INSERT INTO dispatch_tickets 
+        (ticket_code, client_name, client_id, phone, city, address, delivery_reference, reference_phone, payment_method, products) 
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [
+          code, 
+          formData.nombres || '', 
+          formData.cedula || '', 
+          formData.telefono || '', 
+          formData.ciudad || '', 
+          formData.direccion || '', 
+          formData.referenciaEntrega || '', 
+          formData.telefonoReferencia || '', 
+          formData.formaPago || '', 
+          JSON.stringify(productos || [])
+        ]
+      );
+      res.status(201).json({ message: "Ticket guardado", ticket_code: code });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ detail: "Error guardando el ticket" });
+    }
+  });
+
+  app.get('/tickets', authenticateToken, async (req, res) => {
+    try {
+      const [tickets] = await db.execute('SELECT * FROM dispatch_tickets ORDER BY created_at DESC');
+      res.json(tickets);
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ detail: "Error obteniendo tickets" });
+    }
+  });
 
 // Protected routes
 app.post('/upload-pdf', authenticateToken, upload.single('file'), async (req, res) => {
