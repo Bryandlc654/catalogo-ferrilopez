@@ -58,9 +58,17 @@ async function setupDatabase() {
       title VARCHAR(255) NOT NULL,
       description TEXT,
       price DECIMAL(10,2),
-      imageUrl VARCHAR(255)
+      imageUrl VARCHAR(255),
+      category VARCHAR(255) DEFAULT 'Sin Categoría'
     );
   `);
+  
+  // Try to add category column if migrating from old schema
+  try {
+    await db.query(`ALTER TABLE products ADD COLUMN category VARCHAR(255) DEFAULT 'Sin Categoría'`);
+  } catch(e) {
+    // Ignore if column already exists
+  }
   
   await db.query(`
     CREATE TABLE IF NOT EXISTS users (
@@ -142,6 +150,21 @@ app.get('/products', async (req, res) => {
   }
 });
 
+app.put('/products/:id', authenticateToken, async (req, res) => {
+  const { title, description, price, category } = req.body;
+  const productId = req.params.id;
+  try {
+    await db.execute(
+      'UPDATE products SET title = ?, description = ?, price = ?, category = ? WHERE id = ?',
+      [title, description, price || 0, category || 'Sin Categoría', productId]
+    );
+    res.json({ message: "Producto actualizado correctamente" });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ detail: "Error actualizando el producto" });
+  }
+});
+
 // Protected routes
 app.post('/upload-pdf', authenticateToken, upload.single('file'), async (req, res) => {
   if (!req.file || req.file.mimetype !== 'application/pdf') {
@@ -160,7 +183,8 @@ app.post('/upload-pdf', authenticateToken, upload.single('file'), async (req, re
     
     await extractProductsFromPDF(buffer, IMAGES_DIR, async (product) => {
       try {
-        await db.execute('INSERT INTO products (id, title, description, price, imageUrl) VALUES (?, ?, ?, ?, ?)', [product.id, product.title, product.description, product.price, product.imageUrl]);
+        await db.execute('INSERT INTO products (id, title, description, price, imageUrl, category) VALUES (?, ?, ?, ?, ?, ?)', 
+          [product.id, product.title, product.description, product.price, product.imageUrl, product.category || product.subcategoria || product.categoria || 'Sin Categoría']);
         console.log(`Producto guardado: ${product.title}`);
       } catch (err) {
         console.error('Error insertando producto en DB:', err);

@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
-import { FiBookOpen, FiLogOut, FiUser } from 'react-icons/fi';
+import { FiBookOpen, FiLogOut, FiUser, FiSettings } from 'react-icons/fi';
 
 const Navbar = () => {
   const { isAuthenticated, username, logout } = useContext(AuthContext);
@@ -25,12 +25,11 @@ const Navbar = () => {
         </Link>
 
         <div className="flex items-center space-x-6">
-          <Link to="/ticket" className="text-gray-600 hover:text-brand-red font-bold text-sm transition-colors flex items-center print:hidden">
-            <FiBookOpen className="mr-1.5 text-lg"/> Generar Ticket
-          </Link>
-          
           {isAuthenticated ? (
             <div className="flex items-center space-x-4">
+              <Link to="/admin" className="text-gray-600 hover:text-brand-red font-bold text-sm transition-colors flex items-center print:hidden bg-gray-100 px-3 py-1.5 rounded-lg border border-gray-200">
+                <FiSettings className="mr-1.5 text-lg"/> Panel Admin
+              </Link>
               <span className="text-gray-600 font-medium flex items-center hidden sm:flex text-sm">
                 <FiUser className="mr-2 text-brand-blue" />
                 <span>Hola, <span className="font-bold text-brand-blue">{username}</span></span>
