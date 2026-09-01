@@ -243,7 +243,12 @@ const AdminDashboard = () => {
         {activeTab === 'products' && (
           <div className="p-8">
             <div className="flex justify-between items-center mb-6">
-              <h1 className="text-2xl font-bold text-gray-800">Gestión de Inventario</h1>
+              <h1 className="text-2xl font-bold text-gray-800 flex items-center gap-3">
+                Gestión de Inventario
+                <span className="text-sm bg-gray-200 text-gray-700 py-1 px-3 rounded-full font-medium">
+                  {products.length} {products.length === 1 ? 'producto' : 'productos'} en total
+                </span>
+              </h1>
               <div className="flex gap-3">
                 <button onClick={() => handleOpenModal()} className="bg-brand-blue text-white px-4 py-2 rounded font-semibold flex items-center gap-2 hover:bg-blue-900 transition">
                   <FiPlus /> Añadir Producto
@@ -329,7 +334,12 @@ const AdminDashboard = () => {
         {/* TAB 4: HISTORIAL DE TICKETS */}
         {activeTab === 'ticket-history' && (
           <div className="p-8">
-            <h1 className="text-2xl font-bold text-gray-800 mb-6">Historial de Tickets Generados</h1>
+            <h1 className="text-2xl font-bold text-gray-800 mb-6 flex items-center gap-3">
+              Historial de Tickets Generados
+              <span className="text-sm bg-gray-200 text-gray-700 py-1 px-3 rounded-full font-medium">
+                {tickets.length} {tickets.length === 1 ? 'ticket' : 'tickets'} en total
+              </span>
+            </h1>
             <div className="bg-white rounded-xl shadow-sm border border-gray-200 overflow-hidden">
               <table className="w-full text-left text-sm">
                 <thead className="bg-gray-50 border-b border-gray-200 text-gray-600">
