@@ -191,10 +191,11 @@ const DispatchTicket = ({ products = [] }) => {
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-600 uppercase">Dirección Exacta</label>
-              <input 
-                type="text" name="direccion" value={formData.direccion} onChange={handleInputChange}
-                className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-              />
+              <textarea 
+                rows="2"
+                name="direccion" value={formData.direccion} onChange={handleInputChange}
+                className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium resize-none"
+              ></textarea>
             </div>
           </div>
         </div>
@@ -206,11 +207,12 @@ const DispatchTicket = ({ products = [] }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-600 uppercase">Referencias para llegar</label>
-              <input 
-                type="text" name="referenciaEntrega" value={formData.referenciaEntrega} onChange={handleInputChange}
-                className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
+              <textarea 
+                rows="2"
+                name="referenciaEntrega" value={formData.referenciaEntrega} onChange={handleInputChange}
+                className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium resize-none"
                 placeholder="Cerca de..."
-              />
+              ></textarea>
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase">Teléfono Auxiliar (Referencia)</label>
@@ -268,16 +270,16 @@ const DispatchTicket = ({ products = [] }) => {
                         className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
                       />
                     </td>
-                    <td className="px-2 py-2 relative">
-                      <input 
-                        type="text" 
+                    <td className="px-2 py-2 relative align-top">
+                      <textarea 
+                        rows="2"
                         value={prod.nombre} 
                         onChange={(e) => handleProductChange(index, 'nombre', e.target.value)}
                         onFocus={() => handleProductChange(index, 'showSearch', true)}
                         onBlur={() => setTimeout(() => handleProductChange(index, 'showSearch', false), 200)}
                         placeholder="Buscar producto..."
-                        className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-                      />
+                        className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium resize-none overflow-hidden text-sm leading-tight"
+                      ></textarea>
                       {prod.showSearch && prod.nombre.length > 1 && (
                         <div className="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 shadow-xl rounded-lg print:hidden">
                           {products
