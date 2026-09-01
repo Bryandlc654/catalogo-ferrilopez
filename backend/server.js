@@ -200,16 +200,26 @@ app.post('/upload-pdf', authenticateToken, upload.single('file'), async (req, re
 app.delete('/products', authenticateToken, async (req, res) => {
   try {
     await db.execute('DELETE FROM products');
-    fs.readdir(IMAGES_DIR, (err, files) => {
-      if (err) throw err;
-      for (const file of files) {
-        fs.unlink(path.join(IMAGES_DIR, file), err => {
-          if (err) console.error(err);
-        });
+    
+    // Safely delete images
+    try {
+      if (fs.existsSync(IMAGES_DIR)) {
+        const files = fs.readdirSync(IMAGES_DIR);
+        for (const file of files) {
+          try {
+            fs.unlinkSync(path.join(IMAGES_DIR, file));
+          } catch (e) {
+            console.error('No se pudo borrar imagen:', file);
+          }
+        }
       }
-    });
+    } catch (fsErr) {
+      console.error('Error al leer el directorio de imagenes:', fsErr);
+    }
+    
     res.json({ message: "Catálogo limpiado correctamente" });
   } catch(err) {
+    console.error("Error limpiando BD:", err);
     res.status(500).json({ detail: "Error limpiando catálogo" });
   }
 });
