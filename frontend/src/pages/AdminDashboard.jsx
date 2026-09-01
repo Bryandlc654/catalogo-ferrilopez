@@ -224,9 +224,11 @@ const AdminDashboard = () => {
           <button onClick={() => setActiveTab('products')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${activeTab === 'products' ? 'bg-brand-red text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
             <FiPackage /> Inventario
           </button>
+          {/* 
           <button onClick={() => setActiveTab('pdf')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${activeTab === 'pdf' ? 'bg-brand-red text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
             <FiUploadCloud /> Subir Catálogo (PDF)
           </button>
+          */}
           <button onClick={() => setActiveTab('ticket')} className={`w-full flex items-center gap-3 px-4 py-3 rounded-lg text-left font-medium transition-colors ${activeTab === 'ticket' ? 'bg-brand-red text-white' : 'text-gray-600 hover:bg-gray-100'}`}>
             <FiFileText /> Crear Ticket
           </button>
