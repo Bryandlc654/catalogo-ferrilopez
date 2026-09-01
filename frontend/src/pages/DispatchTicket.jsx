@@ -20,6 +20,7 @@ const DispatchTicket = ({ products = [] }) => {
 
   const [ticketCode, setTicketCode] = useState(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -87,24 +88,31 @@ const DispatchTicket = ({ products = [] }) => {
   };
 
   const handleDownloadPDF = () => {
-    const element = document.getElementById('ticket-content');
-    const opt = {
-      margin: 10,
-      filename: `Ticket_${ticketCode || 'Nuevo'}.pdf`,
-      image: { type: 'jpeg', quality: 0.98 },
-      html2canvas: { scale: 2 },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-    };
+    setIsGeneratingPdf(true);
     
-    const oldStyles = element.style.cssText;
-    
-    html2pdf().set(opt).from(element).save().then(() => {
-        element.style.cssText = oldStyles;
-    });
+    // Wait for React to re-render the DOM with text instead of inputs
+    setTimeout(() => {
+      const element = document.getElementById('ticket-content');
+      const opt = {
+        margin: 10,
+        filename: `Ticket_${ticketCode || 'Nuevo'}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+      };
+      
+      html2pdf().set(opt).from(element).save().then(() => {
+          setIsGeneratingPdf(false);
+      });
+    }, 100);
   };
 
   const handlePrint = () => {
-    window.print();
+    setIsGeneratingPdf(true);
+    setTimeout(() => {
+      window.print();
+      setIsGeneratingPdf(false);
+    }, 100);
   };
 
   return (
