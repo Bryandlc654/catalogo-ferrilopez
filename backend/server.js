@@ -9,7 +9,7 @@ import mysql from 'mysql2/promise';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
-import { S3Client, ListObjectsV2Command, DeleteObjectsCommand } from "@aws-sdk/client-s3";
+import { S3Client, ListObjectsV2Command, DeleteObjectsCommand, PutObjectCommand, DeleteObjectCommand } from "@aws-sdk/client-s3";
 
 dotenv.config();
 
@@ -164,18 +164,116 @@ app.get('/products', async (req, res) => {
   }
 });
 
-app.put('/products/:id', authenticateToken, async (req, res) => {
+const generateId = () => Math.random().toString(36).substring(2, 10);
+
+app.post('/products', authenticateToken, upload.single('image'), async (req, res) => {
   const { title, description, price, category } = req.body;
-  const productId = req.params.id;
+  const productId = generateId();
+  let imageUrl = null;
+  
+  if (req.file) {
+    const imageFilename = `product_${productId}_${Date.now()}.png`;
+    if (s3Client && process.env.R2_BUCKET_NAME) {
+      try {
+        await s3Client.send(new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: imageFilename,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype || 'image/png'
+        }));
+        imageUrl = `${process.env.R2_PUBLIC_URL}/${imageFilename}`;
+      } catch (err) {
+        console.error("Error subiendo imagen a R2:", err);
+      }
+    } else {
+      const imagePath = path.join(IMAGES_DIR, imageFilename);
+      fs.writeFileSync(imagePath, req.file.buffer);
+      imageUrl = `/static/images/${imageFilename}`;
+    }
+  }
+
   try {
     await db.execute(
-      'UPDATE products SET title = ?, description = ?, price = ?, category = ? WHERE id = ?',
-      [title, description, price || 0, category || 'Sin Categoría', productId]
+      'INSERT INTO products (id, title, description, price, category, imageUrl) VALUES (?, ?, ?, ?, ?, ?)',
+      [productId, title, description || '', price || 0, category || 'Sin Categoría', imageUrl]
     );
-    res.json({ message: "Producto actualizado correctamente" });
+    res.status(201).json({ message: "Producto creado", id: productId, imageUrl });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ detail: "Error creando el producto" });
+  }
+});
+
+app.put('/products/:id', authenticateToken, upload.single('image'), async (req, res) => {
+  const { title, description, price, category } = req.body;
+  const productId = req.params.id;
+  let imageUrl = undefined;
+  
+  if (req.file) {
+    const imageFilename = `product_${productId}_${Date.now()}.png`;
+    if (s3Client && process.env.R2_BUCKET_NAME) {
+      try {
+        await s3Client.send(new PutObjectCommand({
+          Bucket: process.env.R2_BUCKET_NAME,
+          Key: imageFilename,
+          Body: req.file.buffer,
+          ContentType: req.file.mimetype || 'image/png'
+        }));
+        imageUrl = `${process.env.R2_PUBLIC_URL}/${imageFilename}`;
+      } catch (err) {
+        console.error("Error subiendo nueva imagen a R2:", err);
+      }
+    } else {
+      const imagePath = path.join(IMAGES_DIR, imageFilename);
+      fs.writeFileSync(imagePath, req.file.buffer);
+      imageUrl = `/static/images/${imageFilename}`;
+    }
+  }
+
+  try {
+    if (imageUrl !== undefined) {
+      await db.execute(
+        'UPDATE products SET title = ?, description = ?, price = ?, category = ?, imageUrl = ? WHERE id = ?',
+        [title, description, price || 0, category || 'Sin Categoría', imageUrl, productId]
+      );
+    } else {
+      await db.execute(
+        'UPDATE products SET title = ?, description = ?, price = ?, category = ? WHERE id = ?',
+        [title, description, price || 0, category || 'Sin Categoría', productId]
+      );
+    }
+    res.json({ message: "Producto actualizado correctamente", imageUrl });
   } catch (err) {
     console.error(err);
     res.status(500).json({ detail: "Error actualizando el producto" });
+  }
+});
+
+app.delete('/products/:id', authenticateToken, async (req, res) => {
+  const productId = req.params.id;
+  try {
+    const [rows] = await db.execute('SELECT imageUrl FROM products WHERE id = ?', [productId]);
+    if (rows.length > 0) {
+      const imgUrl = rows[0].imageUrl;
+      if (imgUrl) {
+        if (imgUrl.includes(process.env.R2_PUBLIC_URL) && s3Client) {
+          const key = imgUrl.split('/').pop();
+          try {
+            await s3Client.send(new DeleteObjectCommand({ Bucket: process.env.R2_BUCKET_NAME, Key: key }));
+          } catch(e) { console.error("Error borrando imagen de R2", e); }
+        } else if (imgUrl.startsWith('/static/images/')) {
+          const filename = imgUrl.split('/').pop();
+          try {
+            fs.unlinkSync(path.join(IMAGES_DIR, filename));
+          } catch(e) {}
+        }
+      }
+    }
+    await db.execute('DELETE FROM products WHERE id = ?', [productId]);
+    res.json({ message: "Producto eliminado" });
+  } catch(err) {
+    console.error(err);
+    res.status(500).json({ detail: "Error eliminando producto" });
   }
 });
 
