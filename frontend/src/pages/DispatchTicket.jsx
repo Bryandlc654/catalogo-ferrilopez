@@ -162,40 +162,45 @@ const DispatchTicket = ({ products = [] }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase">Nombres y Apellidos</label>
+              {isGeneratingPdf ? <div className="py-2 font-medium text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.nombres || '-'}</div> : 
               <input 
                 type="text" name="nombres" value={formData.nombres} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
                 placeholder="Ej. Juan Pérez"
-              />
+              />}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase">Cédula / RUC</label>
+              {isGeneratingPdf ? <div className="py-2 font-medium text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.cedula || '-'}</div> :
               <input 
                 type="text" name="cedula" value={formData.cedula} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-              />
+              />}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase">Teléfono Principal</label>
+              {isGeneratingPdf ? <div className="py-2 font-medium text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.telefono || '-'}</div> :
               <input 
                 type="text" name="telefono" value={formData.telefono} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-              />
+              />}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase">Ciudad</label>
+              {isGeneratingPdf ? <div className="py-2 font-medium text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.ciudad || '-'}</div> :
               <input 
                 type="text" name="ciudad" value={formData.ciudad} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-              />
+              />}
             </div>
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-600 uppercase">Dirección Exacta</label>
+              {isGeneratingPdf ? <div className="py-2 font-medium text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.direccion || '-'}</div> :
               <textarea 
                 rows="2"
                 name="direccion" value={formData.direccion} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium resize-none"
-              ></textarea>
+              ></textarea>}
             </div>
           </div>
         </div>
@@ -207,22 +212,25 @@ const DispatchTicket = ({ products = [] }) => {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="md:col-span-2">
               <label className="block text-xs font-semibold text-gray-600 uppercase">Referencias para llegar</label>
+              {isGeneratingPdf ? <div className="py-2 font-medium text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.referenciaEntrega || '-'}</div> :
               <textarea 
                 rows="2"
                 name="referenciaEntrega" value={formData.referenciaEntrega} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium resize-none"
                 placeholder="Cerca de..."
-              ></textarea>
+              ></textarea>}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase">Teléfono Auxiliar (Referencia)</label>
+              {isGeneratingPdf ? <div className="py-2 font-medium text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.telefonoReferencia || '-'}</div> :
               <input 
                 type="text" name="telefonoReferencia" value={formData.telefonoReferencia} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-              />
+              />}
             </div>
             <div>
               <label className="block text-xs font-semibold text-gray-600 uppercase">Forma de Pago</label>
+              {isGeneratingPdf ? <div className="py-2 font-bold text-gray-900 border-b border-gray-200 min-h-[36px]">{formData.formaPago || '-'}</div> :
               <select 
                 name="formaPago" value={formData.formaPago} onChange={handleInputChange}
                 className="w-full mt-1 p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:appearance-none print:border-none print:p-0 print:font-medium print:bg-transparent"
@@ -231,7 +239,7 @@ const DispatchTicket = ({ products = [] }) => {
                 <option value="Efectivo">Efectivo</option>
                 <option value="Contra Entrega">Contra Entrega</option>
                 <option value="Tarjeta">Tarjeta / Link de Pago</option>
-              </select>
+              </select>}
             </div>
           </div>
         </div>
@@ -260,63 +268,68 @@ const DispatchTicket = ({ products = [] }) => {
               </thead>
               <tbody className="divide-y divide-gray-200">
                 {productos.map((prod, index) => (
-                  <tr key={index}>
-                    <td className="px-2 py-2">
-                      <input 
-                        type="text" 
-                        value={prod.codigo} 
-                        onChange={(e) => handleProductChange(index, 'codigo', e.target.value)}
-                        placeholder="Ej. 000123"
-                        className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-                      />
-                    </td>
-                    <td className="px-2 py-2 relative align-top">
-                      <textarea 
-                        rows="2"
-                        value={prod.nombre} 
-                        onChange={(e) => handleProductChange(index, 'nombre', e.target.value)}
-                        onFocus={() => handleProductChange(index, 'showSearch', true)}
-                        onBlur={() => setTimeout(() => handleProductChange(index, 'showSearch', false), 200)}
-                        placeholder="Buscar producto..."
-                        className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium resize-none overflow-hidden text-sm leading-tight"
-                      ></textarea>
-                      {prod.showSearch && prod.nombre.length > 1 && (
-                        <div className="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 shadow-xl rounded-lg print:hidden">
-                          {products
-                            .filter(p => p.title.toLowerCase().includes(prod.nombre.toLowerCase()))
-                            .slice(0, 10)
-                            .map(p => (
-                              <div 
-                                key={p.id}
-                                onMouseDown={() => handleSelectProduct(index, p)}
-                                className="p-2 hover:bg-brand-red hover:text-white cursor-pointer border-b border-gray-100 last:border-0 text-xs"
-                              >
-                                {p.title} <span className="opacity-75 float-right">${p.price}</span>
-                              </div>
-                            ))}
-                        </div>
+                    <tr key={index}>
+                      <td className="px-2 py-2">
+                        {isGeneratingPdf ? <div className="py-2 text-gray-900 border-b border-gray-100">{prod.codigo || '-'}</div> :
+                        <input 
+                          type="text" 
+                          value={prod.codigo} 
+                          onChange={(e) => handleProductChange(index, 'codigo', e.target.value)}
+                          placeholder="Ej. 000123"
+                          className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
+                        />}
+                      </td>
+                      <td className="px-2 py-2 relative align-top">
+                        {isGeneratingPdf ? <div className="py-2 text-gray-900 font-medium border-b border-gray-100">{prod.nombre || '-'}</div> :
+                        <textarea 
+                          rows="2"
+                          value={prod.nombre} 
+                          onChange={(e) => handleProductChange(index, 'nombre', e.target.value)}
+                          onFocus={() => handleProductChange(index, 'showSearch', true)}
+                          onBlur={() => setTimeout(() => handleProductChange(index, 'showSearch', false), 200)}
+                          placeholder="Buscar producto..."
+                          className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium resize-none overflow-hidden text-sm leading-tight"
+                        ></textarea>}
+                        {!isGeneratingPdf && prod.showSearch && prod.nombre.length > 1 && (
+                          <div className="absolute z-50 left-0 right-0 mt-1 max-h-48 overflow-y-auto bg-white border border-gray-200 shadow-xl rounded-lg print:hidden">
+                            {products
+                              .filter(p => p.title.toLowerCase().includes(prod.nombre.toLowerCase()))
+                              .slice(0, 10)
+                              .map(p => (
+                                <div 
+                                  key={p.id}
+                                  onMouseDown={() => handleSelectProduct(index, p)}
+                                  className="p-2 hover:bg-brand-red hover:text-white cursor-pointer border-b border-gray-100 last:border-0 text-xs"
+                                >
+                                  {p.title} <span className="opacity-75 float-right">${p.price}</span>
+                                </div>
+                              ))}
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-2 py-2">
+                        {isGeneratingPdf ? <div className="py-2 text-gray-900 font-bold border-b border-gray-100">{prod.cantidad || '1'}</div> :
+                        <input 
+                          type="number" 
+                          min="1"
+                          value={prod.cantidad} 
+                          onChange={(e) => handleProductChange(index, 'cantidad', e.target.value)}
+                          className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
+                        />}
+                      </td>
+                      {!isGeneratingPdf && (
+                        <td className="px-2 py-2 text-center print:hidden">
+                          <button 
+                            onClick={() => removeProductRow(index)}
+                            disabled={productos.length === 1}
+                            className={`p-2 rounded text-white ${productos.length === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'}`}
+                          >
+                            <FiTrash2 />
+                          </button>
+                        </td>
                       )}
-                    </td>
-                    <td className="px-2 py-2">
-                      <input 
-                        type="number" 
-                        min="1"
-                        value={prod.cantidad} 
-                        onChange={(e) => handleProductChange(index, 'cantidad', e.target.value)}
-                        className="w-full p-2 border border-gray-300 rounded focus:ring-brand-red focus:border-brand-red print:border-none print:p-0 print:font-medium"
-                      />
-                    </td>
-                    <td className="px-2 py-2 text-center print:hidden">
-                      <button 
-                        onClick={() => removeProductRow(index)}
-                        disabled={productos.length === 1}
-                        className={`p-2 rounded text-white ${productos.length === 1 ? 'bg-gray-300 cursor-not-allowed' : 'bg-red-500 hover:bg-red-600'}`}
-                      >
-                        <FiTrash2 />
-                      </button>
-                    </td>
-                  </tr>
-                ))}
+                    </tr>
+                  ))}
               </tbody>
             </table>
           </div>
