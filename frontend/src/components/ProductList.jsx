@@ -124,7 +124,8 @@ const ProductList = ({ products }) => {
                     className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-700 ease-[cubic-bezier(0.25,0.46,0.45,0.94)] mix-blend-multiply"
                     onError={(e) => {
                       e.target.onerror = null;
-                      e.target.src = 'https://via.placeholder.com/300x200?text=Sin+Imagen';
+                      // En lugar de llamar a una URL externa que causa ERR_CONNECTION_CLOSED, ponemos un SVG local incrustado
+                      e.target.src = "data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='200' viewBox='0 0 300 200'%3E%3Crect width='300' height='200' fill='%23f3f4f6'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-family='sans-serif' font-size='16' fill='%239ca3af'%3ESin Imagen%3C/text%3E%3C/svg%3E";
                     }}
                   />
                 ) : (
