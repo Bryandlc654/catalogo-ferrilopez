@@ -270,7 +270,7 @@ const DispatchTicket = ({ products = [] }) => {
                       <td className="px-2 py-2">
                         {prod.imageUrl ? (
                           <img 
-                            src={prod.imageUrl.startsWith('http') ? prod.imageUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${prod.imageUrl}`} 
+                            src={prod.imageUrl.startsWith('http') ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/proxy-image?url=${encodeURIComponent(prod.imageUrl)}` : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${prod.imageUrl}`} 
                             alt={prod.nombre} 
                             crossOrigin="anonymous"
                             className="w-10 h-10 object-contain" 

@@ -48,6 +48,22 @@ if (!fs.existsSync(IMAGES_DIR)) {
 // Serve static images
 app.use('/static', express.static(STATIC_DIR));
 
+// Image proxy to bypass CORS for html2canvas
+app.get('/proxy-image', async (req, res) => {
+  try {
+    const { url } = req.query;
+    if (!url) return res.status(400).send('URL required');
+    const response = await fetch(url);
+    if (!response.ok) return res.status(response.status).send('Failed to fetch image');
+    const buffer = await response.arrayBuffer();
+    const type = response.headers.get('content-type');
+    res.set('Content-Type', type);
+    res.set('Access-Control-Allow-Origin', '*');
+    res.send(Buffer.from(buffer));
+  } catch (error) {
+    res.status(500).send('Error proxying image');
+  }
+});
 // Configure Multer for PDF uploads (in-memory buffer)
 const storage = multer.memoryStorage();
 const upload = multer({ storage: storage });

@@ -88,7 +88,7 @@ const PrintableTicket = ({ ticket }) => {
                   <td className="px-4 py-3">
                     {p.imageUrl ? (
                       <img 
-                        src={p.imageUrl.startsWith('http') ? p.imageUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${p.imageUrl}`} 
+                        src={p.imageUrl.startsWith('http') ? `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/proxy-image?url=${encodeURIComponent(p.imageUrl)}` : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${p.imageUrl}`} 
                         alt={p.nombre} 
                         crossOrigin="anonymous"
                         className="w-10 h-10 object-contain" 
