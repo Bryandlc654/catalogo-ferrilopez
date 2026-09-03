@@ -60,7 +60,7 @@ const AdminDashboard = () => {
     setTicketToPrint(ticket);
     setTimeout(() => {
       window.print();
-    }, 100);
+    }, 800);
   };
 
   const handleDownloadHistoryTicket = (ticket) => {
@@ -80,8 +80,9 @@ const AdminDashboard = () => {
       
       html2pdf().set(opt).from(element).save().then(() => {
         element.style.cssText = oldStyles;
+        setTicketToPrint(null);
       });
-    }, 100);
+    }, 800);
   };
 
   useEffect(() => {

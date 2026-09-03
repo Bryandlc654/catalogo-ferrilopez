@@ -90,7 +90,8 @@ const PrintableTicket = ({ ticket }) => {
                       <img 
                         src={p.imageUrl.startsWith('http') ? p.imageUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${p.imageUrl}`} 
                         alt={p.nombre} 
-                        className="w-10 h-10 object-contain mix-blend-multiply" 
+                        crossOrigin="anonymous"
+                        className="w-10 h-10 object-contain" 
                       />
                     ) : (
                       <div className="w-10 h-10 bg-gray-50 flex items-center justify-center text-[10px] text-gray-400 border border-gray-100 rounded">N/A</div>
