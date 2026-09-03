@@ -76,6 +76,7 @@ const PrintableTicket = ({ ticket }) => {
           <table className="w-full text-left text-sm border-collapse">
             <thead className="bg-gray-50 text-gray-600 uppercase text-[11px] tracking-wider border-b-2 border-gray-200">
               <tr>
+                <th className="px-4 py-3 w-16 font-bold">Img</th>
                 <th className="px-4 py-3 w-1/4 font-bold">Código</th>
                 <th className="px-4 py-3 w-1/2 font-bold">Descripción del Producto</th>
                 <th className="px-4 py-3 w-1/4 font-bold text-center">Cantidad</th>
@@ -84,6 +85,17 @@ const PrintableTicket = ({ ticket }) => {
             <tbody className="divide-y divide-gray-100">
               {prods.map((p, i) => (
                 <tr key={i} className="hover:bg-gray-50/50">
+                  <td className="px-4 py-3">
+                    {p.imageUrl ? (
+                      <img 
+                        src={p.imageUrl.startsWith('http') ? p.imageUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${p.imageUrl}`} 
+                        alt={p.nombre} 
+                        className="w-10 h-10 object-contain mix-blend-multiply" 
+                      />
+                    ) : (
+                      <div className="w-10 h-10 bg-gray-50 flex items-center justify-center text-[10px] text-gray-400 border border-gray-100 rounded">N/A</div>
+                    )}
+                  </td>
                   <td className="px-4 py-3"><span className="text-gray-700 font-medium">{p.codigo || '-'}</span></td>
                   <td className="px-4 py-3"><span className="text-gray-900 font-semibold">{p.nombre || '-'}</span></td>
                   <td className="px-4 py-3 text-center"><span className="inline-block bg-gray-100 px-3 py-1 rounded-full font-bold text-gray-800">{p.cantidad || '1'}</span></td>

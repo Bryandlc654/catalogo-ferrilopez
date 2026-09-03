@@ -15,7 +15,7 @@ const DispatchTicket = ({ products = [] }) => {
   });
 
   const [productos, setProductos] = useState([
-    { codigo: '', nombre: '', cantidad: 1, showSearch: false }
+    { codigo: '', nombre: '', cantidad: 1, showSearch: false, imageUrl: '' }
   ]);
 
   const [ticketCode, setTicketCode] = useState(null);
@@ -47,12 +47,13 @@ const DispatchTicket = ({ products = [] }) => {
     
     newProductos[index].nombre = product.title;
     newProductos[index].codigo = code;
+    newProductos[index].imageUrl = product.imageUrl || '';
     newProductos[index].showSearch = false;
     setProductos(newProductos);
   };
 
   const addProductRow = () => {
-    setProductos([...productos, { codigo: '', nombre: '', cantidad: 1, showSearch: false }]);
+    setProductos([...productos, { codigo: '', nombre: '', cantidad: 1, showSearch: false, imageUrl: '' }]);
   };
 
   const removeProductRow = (index) => {
@@ -97,7 +98,7 @@ const DispatchTicket = ({ products = [] }) => {
         margin: 10,
         filename: `Ticket_${ticketCode || 'Nuevo'}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { scale: 2, useCORS: true },
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
       };
       
@@ -256,6 +257,7 @@ const DispatchTicket = ({ products = [] }) => {
             <table className="w-full text-left text-sm">
               <thead className="bg-gray-100 text-gray-600 uppercase text-xs print:bg-gray-200 print:text-black">
                 <tr>
+                  <th className="px-4 py-2 w-16">Img</th>
                   <th className="px-4 py-2 w-1/4">Código</th>
                   <th className="px-4 py-2 w-1/2">Descripción del Producto</th>
                   <th className="px-4 py-2 w-1/4">Cantidad</th>
@@ -265,6 +267,17 @@ const DispatchTicket = ({ products = [] }) => {
               <tbody className="divide-y divide-gray-200">
                 {productos.map((prod, index) => (
                     <tr key={index}>
+                      <td className="px-2 py-2">
+                        {prod.imageUrl ? (
+                          <img 
+                            src={prod.imageUrl.startsWith('http') ? prod.imageUrl : `${import.meta.env.VITE_API_URL || 'http://localhost:5000'}${prod.imageUrl}`} 
+                            alt={prod.nombre} 
+                            className="w-10 h-10 object-contain mix-blend-multiply" 
+                          />
+                        ) : (
+                          <div className="w-10 h-10 bg-gray-50 flex items-center justify-center text-[10px] text-gray-400 border border-gray-100 rounded">N/A</div>
+                        )}
+                      </td>
                       <td className="px-2 py-2">
                         {isGeneratingPdf ? <div className="py-2 text-gray-900 border-b border-gray-100">{prod.codigo || '-'}</div> :
                         <input 
